@@ -2,7 +2,6 @@ package autoflow
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.util.Random
 import scala.collection.mutable.Map
@@ -25,9 +24,9 @@ case class StateComponent(attribute: StateAttribute, face: Int, value: Int)
 case class State(attrs: Set[StateComponent])
 
 trait NodeAgent {
-  val a = 0.1
-  val g = 0.9
-  val t = 0.1
+  val a = 0.1 // low variance
+  val g = 0.9 // far-sighted
+  val t = 0.1 // greedy
 
   type Quality = Double
   var state: State
@@ -48,9 +47,22 @@ trait NodeAgent {
     state = next
   }
 
-//  def exp(value: Double): Double = math.pow(math.E, value / t)
-//  def pr(actions: Map[Action, Quality], action: Action): Double =
-//    exp(actions(action)) /
+  def exp(value: Double): Double =
+    math.pow(math.E, value / t)
+
+  def pr(actions: Map[Action, Quality], action: Action): Double =
+    exp(actions(action)) / actions.keys.map(actions(_)).sum
+
+  def choose(state: State): Action = {
+    val r = Random nextDouble
+    var sum = 0.0
+    val actions = q(state)
+    for ((action, quality) <- actions) yield {
+      sum += pr(actions, action)
+      if (r <= sum) return action
+    }
+    actions.head._1 // this should never happen
+  }
 
 //  def act(state: State): Action = {
 //    val actions: Map[Action, Quality] =
@@ -58,15 +70,14 @@ trait NodeAgent {
 //
 //  }
 
-  def reward(state: State): Double = 1.0
+  def reward(state: State): Double =
+    if (state.attrs.exists(c => c.value != 0.0)) 0.0 else 100.0
 
   def optimal(state: State): Double = {
     val actions: Map[Action, Quality] =
       q.getOrElse(state, Map.empty[Action, Quality])
     (0.0 /: actions) (_ max _._2)
   }
-
-
 
   // should be in aggregator?
   //  def updateState(attr: StateAttr, value: Double): Unit = {
