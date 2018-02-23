@@ -1,5 +1,7 @@
 var $ = require('jquery');
 
+var nodes = require('../../public/data/nodes');
+
 module.exports = function dashboard(){
     $(document).ready(function() {
 
@@ -30,80 +32,39 @@ module.exports = function dashboard(){
             });
 
 
-
-            var locations = [
-                ['loc1', 50.848141, 4.351043, 4],
-                ['Loc2', 50.853458, 4.365423, 5]
-            ];
-
-
             // Custom Icon for Traffic light.
 
             var icon = {
                 url: '../images/traffic_light.svg', // url
-                scaledSize: new google.maps.Size(11, 11), // scaled size
+                scaledSize: new google.maps.Size(6, 6), // scaled size
                 origin: new google.maps.Point(0,0), // origin
                 anchor: new google.maps.Point(0, 0) // anchor
             };
 
-/*            var marker = new google.maps.Marker({
-                position: {lat: 50.848141, lng: 4.351043},
-                map: map,
-                icon: icon,
-                title: '#Traffic Light ID'
-            });
-
-            var marker2 = new google.maps.Marker({
-                position: {lat: 50.853458, lng: 4.365423},
-                map: map,
-                icon: icon,
-                title: '#Traffic Light ID2'
-            });*/
-
             var marker, i;
-            console.log(locations.length);
-            for (i = 0; i < locations.length; i++) {
-                console.log(i);
+            for (i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
                 marker = new google.maps.Marker({
-                    position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+                    position: new google.maps.LatLng(node.lat, node.long),
                     map: map,
                     icon: icon,
-                    title: '#Traffic Light ID2'
+                    optimized: false,
+                    id: node.id
                 });
 
                 marker.addListener('click', (function (marker, i) {
                     return function () {
-                       // infowindow.setContent(locations[i][0]);
-                       // infowindow.open(map, marker);
-                       // console.log("Marker");
-                        console.log(i);
+                        //console.log(marker.id);
+                        updateNodeDetail(marker);
                     }
                 })(marker, i));
             }
+        };
 
-            marker.addListener('click', function() {
-                //infowindow.open(map, marker);
-                console.log(this);
-            });
+        var trafficLightWrapper = $('#traffic_light_info');
 
-
-
-            // Add event listener to zoom event (in order to scale circles)
-    /*          google.maps.event.addListener(map, 'zoom_changed', function() {
-                var zoomLevel = map.getZoom();
-                cityCircle.setRadius(getCustomRadiusForZoom(zoomLevel));
-            });*/
-
-
-            /*
-           var startRadius = 60;
-
-
-           function getCustomRadiusForZoom(level) {
-               //console.log(level);
-               return startRadius - (level * 2)
-           }*/
-
+        function updateNodeDetail(marker) {
+            trafficLightWrapper.html(marker.id);
         }
     });
 };
