@@ -1,0 +1,13 @@
+doctype html
+html
+  head
+    title= "Autoflow"
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(src='href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700' rel='stylesheet')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js')
+  body
+    block content
+    script.
+      function initMap() {}
+    script(src='/javascripts/appBundle.js')
+    script(src='https://maps.googleapis.com/maps/api/js?key=AIzaSyCevXfaIQn4i20KwOR2ZluBFokcghi8Ibo&callback=initMap' async defer)
