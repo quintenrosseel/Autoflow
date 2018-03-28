@@ -869,7 +869,7 @@ section * {
   background-size: cover;
   opacity: 1;
   filter: alpha(opacity=2000);
-  opacity: 0.21;
+  opacity: 0.97;
   filter: alpha(opacity=20);
 }
 @media (max-width: 768px) {
