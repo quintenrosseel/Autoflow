@@ -1,0 +1,52 @@
+  body {
+    padding: 0;
+    margin: 0;
+  }
+  canvas {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  .center-400, .coords {
+    width: 400px;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  h1 {
+    text-align: center;
+    margin-top: 40px;
+    letter-spacing: 2px;
+  }
+  p {
+    text-align: center;
+    line-height: 23px;
+  }
+  hr {
+    display: block;
+    height: 0.5px;
+    border: 0;
+    border-top: 0.5px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+  }
+
+  p a {
+    text-decoration: none;
+  }
+
+  i {
+    text-align: center;
+  }
+
+  .coords p, .coords strong  {
+    display: inline-block
+  }
+
+  .coords {
+    text-align: center; 
+  }

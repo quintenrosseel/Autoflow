@@ -1,0 +1,303 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="./styling.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.js"></script>
+    <script src="./matrixOps.js" type="text/javascript"></script>
+    <script src="./binSearch.js" type="text/javascript"></script>
+
+    <script language="javascript" type="text/javascript">
+      var canvasWidth = 800;
+      var canvasHeight = 480;
+
+      var points = [];
+      var ch = [];
+      var stack = [];
+      var z;
+      var centroid;
+      var upTan;
+      var lowTan;
+      var outside = false;
+
+      class Point {
+          constructor(x, y) {
+              this.x = x;
+              this.y = y;
+          }
+      }
+      function setup() {
+          createCanvas(canvasWidth, canvasHeight);
+          fill('black');
+      }
+
+      function draw() {
+          background(255);
+          for (i in points) {
+            if(ch.includes(points[i])){
+                fill(0);
+                stroke(0);
+            } else {
+                fill(230);
+                stroke(230);
+            }
+            ellipse(points[i].x,points[i].y,4,4);
+          }
+
+
+          if(z) {
+            fill(20,20,255);
+            stroke(20,20,255);
+            ellipse(z.x,z.y,7,7);
+
+            // Draw Tangents
+            if(outside && upTan && lowTan) {
+              stroke(120,80,55);
+              line(z.x,z.y, upTan.x, upTan.y);
+              line(z.x,z.y, lowTan.x, lowTan.y);
+            }
+          }
+
+          if(centroid) {
+            fill(255,20,20);
+            stroke(255,20,20);
+            ellipse(centroid.x,centroid.y,7,7);
+          }
+
+
+      }
+      // MinPoint is the point with the smallest X value
+      // Residue is a copy of the points array without the minPoint
+      function minXPoint(points) {
+        var len = points.length-1;
+        if(len >= 0){
+          var minX = points[len].x;
+          var idx = len;
+          for (var i = len - 1; i >= 0; i--) {
+            if(minX > points[i].x) {
+              minX = points[i].x;
+              idx = i;
+            }
+          }
+          var newArr = points.slice();
+          newArr.splice(idx, 1);
+          return {minPoint: points[idx], residue: newArr};
+        }
+      }
+
+      function radiusSort(origin, points) {
+        var arr = points.slice();
+        arr.sort(function (a, b) {
+           if (orientDet(origin, a, b) > 0) {
+             return -1;
+           }
+           if (orientDet(origin, a, b) < 0)    {
+             return 1;
+           }
+           // a and b lie on the same line.
+           return 0;
+        });
+        return arr;
+      }
+      // Print X-Y coordinates.
+      function mouseMoved() {
+        document.getElementById('x-coord').innerHTML = mouseX;
+        document.getElementById('y-coord').innerHTML = mouseY;
+      }
+
+      function isRightTurn(p, q, r) {
+        var det = orientDet(p,q,r);
+      /*  console.log("Point p (" +
+                    p.x +
+                    ", " +
+                    p.y +
+                    "), ");
+        console.log("point q (" +
+                    q.x +
+                    ", " +
+                    q.y +
+                    "), ");
+        console.log("point r (" +
+                    r.x +
+                    ", " +
+                    r.y +
+                    "), "); */
+        return (det < 0);
+      }
+      function isLeftTurn(p, q, r) {
+        return !isRightTurn(p, q, r);
+      }
+      function grahamScan(points) {
+        var stack = [];
+        var xMin = minXPoint(points); // O(n), as we are not sorting
+        var rSort = [];
+
+        if(points.length > 3) {
+          // rSort does not contain the origin around which we sort.
+          rSort = radiusSort(xMin.minPoint, xMin.residue); // O(n*log(n))
+
+          // Stack <- p0 p1 p2 p4
+          stack.push(xMin.minPoint);
+          stack.push(rSort[0]);
+          stack.push(rSort[1]);
+          stack.push(rSort[2]);
+
+          for(var i = 3; i < points.length; i++) {
+              while(stack.length > 2 &&
+                    isRightTurn(stack[stack.length - 3], stack[stack.length - 2], stack[stack.length - 1])) {
+                      /*console.log("Point p (" +
+                                  stack[stack.length - 3].x +
+                                  ", " +
+                                  stack[stack.length - 3].y +
+                                  "), ");
+                      console.log("point q (" +
+                                  stack[stack.length - 2].x +
+                                  ", " +
+                                  stack[stack.length - 2].y +
+                                  "), ");
+                      console.log("point r (" +
+                                  stack[stack.length - 1].x +
+                                  ", " +
+                                  stack[stack.length - 1].y +
+                                  "), ");
+                      console.log("make a right turn. We POP point q. ");
+                      */
+                  // Pop element that causes right turn
+                  stack.splice((stack.length - 2), 1);
+              }
+              stack.push(rSort[i]);
+          }
+          stack.pop();
+          return stack;
+        } else {
+          // CH of triangle is a triangle.
+          xMin.residue.unshift(xMin.minPoint);
+          return xMin.residue;
+        }
+      }
+
+      function printPoints() {
+          for (i in points) {
+            print(points[i]);
+          }
+      }
+      function addCentroid() {
+        // Calculate q
+        var centroidX = 0;
+        var centroidY = 0;
+        for(var i = 0; i < ch.length - 1; i++) {
+            centroidX = centroidX + ch[i].x;
+            centroidY = centroidY + ch[i].y;
+        }
+        centroidX = centroidX/(ch.length - 1);
+        centroidY = centroidY/(ch.length - 1);
+        centroid = new Point(centroidX, centroidY);
+      }
+
+      function mousePressed() {
+          if(!keyIsDown(32)) {
+            points.push(new Point(mouseX,mouseY));
+            ch = grahamScan(points);
+          } else {
+            addCentroid();
+            z = new Point(mouseX,mouseY);
+            //printPoints();
+            var idUp = binSearch(
+              function(i){
+                return isRightTurn(z,centroid, ch[(i+1)%(ch.length)]);
+              }, ch);
+
+            var idDown = binSearch(
+                function(i){
+                  return isRightTurn(z,centroid, ch[i]);
+                }, ch);
+
+            // Split CH in to two distinct sets that lie either left/right
+            // w.r.t first point
+            var rightPoints = [];
+            var leftPoints = [];
+
+            // Make different sets
+            var divisionPoints = ch.slice();
+            var divisionBools = ch.slice().map(function(el){
+                return isRightTurn(z, centroid, el);
+            });
+
+            var toRemove = divisionBools[0];
+            var idx = 0;
+            while(divisionBools[idx] === toRemove) {
+              divisionPoints.push(divisionPoints[0]); // Add to back
+              divisionPoints.splice(0, 1); // Remove at front
+              idx++;
+            }
+            // Now we know that the points in the array have a single split
+            for(var i = 0; i < divisionPoints.length; i++) {
+              if(isRightTurn(z, centroid, divisionPoints[i])) {
+                rightPoints.push(divisionPoints[i]);
+              } else {
+                leftPoints.push(divisionPoints[i]);
+              }
+            }
+
+            if(isLeftTurn(ch[idDown],ch[idUp], z)) {
+              outside = true;
+              console.log("Point Lies outside the polygon");
+
+              // Figure out the tangent points based on the ccw direction.
+              // We assume that the ordering is CCW.
+              // Returning true = searching left
+              // returning false = searching right
+              // Searching left does not constrain pivot.
+
+              rightTanIdx = binSearch(function(i) {
+                  return isLeftTurn(z, rightPoints[i],
+                                 rightPoints[(i+1)%rightPoints.length]);
+              }, rightPoints);
+
+              leftTanIdx = binSearch(function(i) {
+                return isRightTurn(z, leftPoints[i],
+                               leftPoints[(i+1)%leftPoints.length]);
+              }, leftPoints);
+
+              upTan = rightPoints[rightTanIdx];
+              lowTan = leftPoints[leftTanIdx];
+
+            } else {
+              outside = false;
+              console.log("Point Lies inside the polygon, no tangents to be found. ");
+            }
+          }
+      }
+
+    </script>
+  </head>
+  <body>
+    <h1> Assignment 3 </h1>
+    <div class="center-400">
+      <p> Quinten Rosseel (0536798) <br> 2 MsC Computer Science: Artificial Intelligence <br>
+        Vrije Universiteit Brussel</p>
+      <hr>
+      <p> <strong>Point Inside Polygon: Tangent Implementation </strong><br>
+        Black points are in the convex hull, grey points are not. <br>
+        The blue point is the reference point from which tangents are drawn on the convex hull.
+        The red point is the centroid of the convex hull, updated when a new point to check is added.
+        <br><br>
+        Do a <strong> regular click </strong> to add points to the convex hull. <br>
+
+        <strong> Hold space and click </strong> to add a point to check using <i>tangents</i>. <br><br>
+
+      </p>
+          <br>
+          <br>
+          <div class="coords">
+            <strong> X: &nbsp; </strong>
+            <p id="x-coord"></p>
+             &nbsp;
+             &nbsp;
+            <strong> Y: &nbsp; </strong>
+            <p id="y-coord"></p>
+          </div>
+    </div>
+
+  </body>
+
+</html>

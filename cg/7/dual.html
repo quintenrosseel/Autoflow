@@ -1,0 +1,597 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="./styling.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.js"></script>
+    <script src="./matrixOps.js" type="text/javascript"></script>
+    <script src="./binSearch.js" type="text/javascript"></script>
+
+    <script language="javascript" type="text/javascript">
+      var canvasWidth = 800;
+      var canvasHeight = 480;
+      var points = [];
+      var ch = [];
+      var stack = [];
+      var upTan;
+      var lowTan;
+      var outside = false;
+      var triangles = [];
+      var lines = [];
+      var transX = canvasWidth*0.5;
+      var transY = canvasHeight*0.5;
+      var coordScale = 50;
+      var originVertices = [];
+      var origin;
+
+      class Point {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+        plotDual(minX, maxX) {
+          line(minX, this.dualLineEq(minX), maxX, this.dualLineEq(maxX));
+        }
+        // Note: x = a, y = b, a is x value to fill in (that you get from point)
+        // Note: We use translated eq, s.t.
+
+        // ax' + by' = 1 - ax0 - by0 with x0, y0 the origin point of the system.
+        // Instead of the regular ax + by = 1 equation
+        dualLineEq(a) {
+          if(this.y != 0){
+            return (1 - (origin.x * this.x) - (origin.y * this.y) - a*this.x)/this.y;
+          }
+        }
+        dualLineEqToX(b) {
+          if(this.x != 0){
+            return (1 - (origin.x * this.x) - (origin.y * this.y) - b*this.y)/this.x;
+          }
+        }
+        // Extract a and b from the dualLineEq(a) and get point dual from that line.
+        // lineToPointDual() {
+        //   return (new Point(-this.x/this.y, -(1/this.y)));
+        // }
+        // Get upper and lower intersections with canvas.
+        getDualCanvasIntersections() {
+          return {bottom: new Point(this.dualLineEqToX(-5), -5),
+                  top: new Point(this.dualLineEqToX(5), 5)}
+        }
+      }
+      // Initialise origin.
+      origin = new Point(0,0);
+      function dualLineIntersect(p1, p2) {
+        // formula extracted from solving set of equations.
+        var x = (p1.y - p2.y)/(p2.x * p1.y - p1.x * p2.y);
+        var y = p1.dualLineEq(x);
+        return new Point(x, y);
+      }
+
+
+
+      function getDirCoef(p1, p2) {
+          return (p2.y - p1.y)/(p2.x - p1.x);
+      }
+
+      function getLineEqPoint(p1, p2) {
+          var m = getDirCoef(p1, p2);
+          return new Point(m, (-m * p1.x) + p1.y)
+      }
+
+      class Triangle {
+        constructor(a, b, c) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+        }
+      }
+
+      function setup() {
+          createCanvas(canvasWidth, canvasHeight);
+          fill('black');
+      }
+
+      function draw() {
+          background(255);
+
+          var canvas = document.getElementById('defaultCanvas0');
+          var context = canvas.getContext('2d');
+          context.translate(transX, transY);
+          context.scale(1 * coordScale, -1 * coordScale);
+
+          noStroke();
+          fill(255,0,0);
+          ellipse(origin.x, origin.y, 0.15,0.15);
+
+          strokeWeight(0.02);
+          noFill();
+
+          // Draw Axis
+          stroke(255,0,0);
+          line(0, canvasHeight/2, 0, -canvasHeight/2); // Y axis
+          line(-canvasWidth/2, 0, canvasWidth/2, 0); // X axis
+
+          // Draw Polar Unit Circle
+          stroke(255,0,0,20);
+          for(var i = 0; i < 20; i+=2) {
+              ellipse(0,0,i,i);
+          }
+
+          noStroke();
+          beginShape();
+
+          for (i in originVertices) {
+                fill(255,250,205, 160);
+                // Draw polygon.
+                vertex(originVertices[i].x, originVertices[i].y);
+                // Draw intersection point
+                ellipse(originVertices[i].x, originVertices[i].y, 0.1, 0.1);
+          }
+          endShape(CLOSE);
+
+          // Draw Points.
+          var radius = 0.1;
+          for (i in points) {
+            if(ch.includes(points[i])){
+              stroke(0);
+              fill(0);
+              points[i].plotDual(-canvasWidth/2, canvasWidth/2);
+              noStroke();
+              ellipse(points[i].x, points[i].y, radius,radius);
+            } else {
+              stroke(225);
+              fill(225);
+              points[i].plotDual(-canvasWidth/2, canvasWidth/2);
+              noStroke();
+              ellipse(points[i].x, points[i].y, radius,radius);
+            }
+          }
+          context.translate(-transX, -transY);
+      }
+
+      // MinPoint is the point with the smallest X value
+      // Residue is a copy of the points array without the minPoint
+      function minXPoint(points) {
+        var len = points.length-1;
+
+        if(len >= 0) {
+          var minX = points[len].x;
+          var idx = len;
+          for (var i = len - 1; i >= 0; i--) {
+            if(minX > points[i].x) {
+              minX = points[i].x;
+              idx = i;
+            }
+          }
+          var newArr = points.slice();
+          newArr.splice(idx, 1);
+          return {minPoint: points[idx], residue: newArr};
+        }
+      }
+
+      function radiusSort(start, points) {
+        var arr = points.slice();
+        arr.sort(function (a, b) {
+           if (orientDet(start, a, b) > 0) {
+             return -1;
+           }
+           if (orientDet(start, a, b) < 0)    {
+             return 1;
+           }
+           // a and b lie on the same line.
+           return 0;
+        });
+        return arr;
+      }
+
+      function mouseMoved() {
+        document.getElementById('x-coord').innerHTML = getMouseX().toFixed(3);
+        document.getElementById('y-coord').innerHTML = getMouseY().toFixed(3);
+      }
+
+      function getMouseX() {
+        return ((mouseX - transX)/coordScale);
+      }
+
+      function getMouseY() {
+        return (((-1)*(mouseY - transY))/coordScale);
+      }
+
+      function isRightTurn(p, q, r) {
+        var det = orientDet(p,q,r);
+        return (det < 0);
+      }
+
+      function isLeftTurn(p, q, r) {
+        return !isRightTurn(p, q, r);
+      }
+
+      // Only works when points are sequential.
+      function isCcwOrientation(ch){
+        if(ch.length > 2) {
+          return isLeftTurn(ch[0], ch[1], ch[2]);
+        } else if(ch.length == 2) {
+          return ch[0].x < ch[1].x;
+        }
+      }
+
+      // Assumes CW ordering. of points.
+      function originInPolygon(points) {
+        if(points.length < 3) {
+          return false;
+        } else {
+            var inside = true;
+            var isCcw = isCcwOrientation(points);
+
+            // Walk in CCW or CW around points.
+            for(var i = 0; i < points.length; i++) {
+              if(isCcw && isRightTurn(points[i], points[(i+1)%points.length], origin)) {
+                inside = false;
+              }
+              if(!isCcw && isLeftTurn(points[i], points[(i+1)%points.length], origin)) {
+                inside = false;
+              }
+            }
+            return inside;
+          }
+        }
+
+      function grahamScan(points) {
+        var stack = [];
+        var xMin = minXPoint(points); // O(n), as we are not sorting
+        var rSort = [];
+
+        if(points.length > 3) {
+          // rSort does not contain the origin around which we sort.
+          rSort = radiusSort(xMin.minPoint, xMin.residue); // O(n*log(n))
+
+          // Stack <- p0 p1 p2 p4
+          stack.push(xMin.minPoint);
+          stack.push(rSort[0]);
+          stack.push(rSort[1]);
+          stack.push(rSort[2]);
+
+          for(var i = 3; i < points.length; i++) {
+              while(stack.length > 2 &&
+                    isRightTurn(stack[stack.length - 3], stack[stack.length - 2], stack[stack.length - 1])) {
+                  // Pop element that causes right turn
+                  stack.splice((stack.length - 2), 1);
+              }
+              stack.push(rSort[i]);
+          }
+          stack.pop();
+          return stack;
+        } else {
+          // CH of triangle is a triangle.
+          xMin.residue.unshift(xMin.minPoint);
+          return xMin.residue;
+        }
+      }
+
+      // We assume CCW ordering for triangle.  i.e. a -> b -> c
+      function insideTriangle (triangle, point) {
+        return (isLeftTurn(triangle.a,triangle.b, point) &&
+                isLeftTurn(triangle.b,triangle.c, point) &&
+                isLeftTurn(triangle.c,triangle.a, point));
+      }
+
+      function addCentroid() {
+        // Calculate q
+        var centroidX = 0;
+        var centroidY = 0;
+        for(var i = 0; i < ch.length - 1; i++) {
+            centroidX = centroidX + ch[i].x;
+            centroidY = centroidY + ch[i].y;
+        }
+        centroidX = centroidX/(ch.length - 1);
+        centroidY = centroidY/(ch.length - 1);
+        centroid = new Point(centroidX, centroidY);
+      }
+
+      function getTangents(ch, refPoint) {
+          if(ch.length > 2) {
+            addCentroid();
+            z = refPoint;
+            //printPoints();
+            var idUp = binSearch(
+            function(i){
+              return isRightTurn(z, centroid, ch[(i+1)%(ch.length)]);
+            }, ch);
+
+            var idDown = binSearch(
+              function(i){
+                return isRightTurn(z,centroid, ch[i]);
+              }, ch);
+
+
+            // Split CH in to two distinct sets that lie either left/right
+            // w.r.t first point
+            var rightPoints = [];
+            var leftPoints = [];
+
+            // Make different sets
+            var divisionPoints = ch.slice();
+            var divisionBools = ch.slice().map(function(el){
+              return isRightTurn(z, centroid, el);
+            });
+
+            var toRemove = divisionBools[0];
+            var idx = 0;
+            while(divisionBools[idx] === toRemove) {
+            divisionPoints.push(divisionPoints[0]); // Add to back
+            divisionPoints.splice(0, 1); // Remove at front
+            idx++;
+            }
+            // Now we know that the points in the array have a single split
+            for(var i = 0; i < divisionPoints.length; i++) {
+            if(isRightTurn(z, centroid, divisionPoints[i])) {
+              rightPoints.push(divisionPoints[i]);
+            } else {
+              leftPoints.push(divisionPoints[i]);
+            }
+            }
+            if(isLeftTurn(ch[idDown],ch[idUp], z)) {
+            outside = true;
+
+            // Figure out the tangent points based on the ccw direction.
+            // We assume that the ordering is CCW.
+            // Returning true = searching left
+            // returning false = searching right
+            // Searching left does not constrain pivot.
+
+            rightTanIdx = binSearch(function(i) {
+                return isLeftTurn(z, rightPoints[i],
+                               rightPoints[(i+1)%rightPoints.length]);
+            }, rightPoints);
+
+            leftTanIdx = binSearch(function(i) {
+              return isRightTurn(z, leftPoints[i],
+                             leftPoints[(i+1)%leftPoints.length]);
+            }, leftPoints);
+
+            upTan = rightPoints[rightTanIdx];
+            lowTan = leftPoints[leftTanIdx];
+
+            return [lowTan, upTan];
+
+            } else {
+            outside = false;
+            console.log("Point Lies inside the polygon, no tangents to be found. ");
+            }
+          } else if (ch.length > 0) {
+            return ch;
+          } else {
+            return [];
+          }
+      }
+
+      // Reshuffles array.
+      function reshuffleUntil(shuffleArr, ref) {
+        var count = 0;
+        while(shuffleArr[0] !== ref || count == shuffleArr.length){
+          shuffleArr.push(shuffleArr.splice(0,1)[0]);
+          count += 1;
+        }
+      }
+
+      function firstMatch(arr, ref) {
+        var idx = 0;
+        while(arr[idx] !== ref){
+          idx += 1;
+        }
+        return idx;
+      }
+
+      function getQuadrant(p) {
+        if(p.x > 0 && p.y > 0){
+          return 1;
+        } else if(p.x <= 0 && p.y > 0){
+          return 2;
+        } else if(p.x <= 0 && p.y <= 0){
+          return 3;
+        } else if(p.x > 0 && p.y <= 0){
+          return 4;
+        }
+      }
+
+      function eucDist(p1) {
+        // Euclidian Distance measure.
+        return sqrt(((p1.x)**2 + (p1.y)**2));
+      }
+
+      function translateOrigin(tX, tY) {
+        origin.x = origin.x + tX;
+        origin.y = origin.y + tY;
+      }
+
+      function mousePressed() {
+          console.log("NEW RUN ---------------------");
+          var leftTop = new Point(-8, 5);
+          var rightTop = new Point(8, 5);
+          var leftBottom = new Point(-8, -5);
+          var rightBottom = new Point(8, -5);
+
+
+
+          if(keyIsDown(32)) {
+            origin.x = 0;
+            origin.y = 0;
+
+            translateOrigin(getMouseX(), getMouseY());
+          } else {
+            var p = new Point(getMouseX(),getMouseY());
+            points.push(p);
+          }
+
+          originVertices = [];
+          ch = grahamScan(points);
+
+          //console.log("Convex Hull: ", ch);
+          var chLen = ch.length;
+
+          if(!isCcwOrientation(ch)) {
+            console.log("CH has CW Orientation, reverse. ");
+            ch.reverse();
+          }
+
+          if(chLen >= 2) {
+            if(!originInPolygon(ch)) {
+              // Compute tangents to CH from origin as reference point.
+              console.log("CH length when computing tangents: ", ch.length);
+              var tangents = getTangents(ch, origin);
+              console.log("Tangents: ", tangents);
+              var rightTang = tangents[0];
+              var leftTang = tangents[1];
+              var swapped = false;
+
+              // Check Order and swap tangents if necessary.
+              if(isRightTurn(origin, rightTang, leftTang)) {
+                console.log("Tangents were swapped. ");
+                var temp = leftTang;
+                leftTang = rightTang;
+                rightTang = temp;
+                swapped = true;
+              }
+
+              console.log("Convex Hull (Before Shuffle): ", ch);
+              // Prepare CH for CCW walk, starting from the right tangent.
+              reshuffleUntil(ch, rightTang);
+              console.log("Convex Hull (After Shuffle) ", ch);
+
+              var startCh = ch[0];
+              console.log("Start Tangent (i.e. Right w.r.t. origin): ", startCh);
+              //console.log("Start Tangent Dual y value at x = -15:", startCh.dualLineEq(-15))
+              //console.log("Start Tangent Dual y value at x = 15:", startCh.dualLineEq(15));
+
+              // Get idx of last tangent in CH.
+              var endIdx = firstMatch(ch, leftTang);
+              var endCh = ch[endIdx];
+
+              console.log("End Tangent (i.e. Left w.r.t. origin): ", endCh);
+              //console.log("End Tangent Dual y value at x = -15:", endCh.dualLineEq(-15))
+              //console.log("End Tangent Dual y value at x = 15:", endCh.dualLineEq(15));
+
+              // Intersection points between CH walk that we will consider.
+              var intersect = dualLineIntersect(startCh, endCh);
+              console.log("Intersection: ", intersect);
+
+              // Ray Ending Possibilities
+              var dualStartLeft = new Point(-15, startCh.dualLineEq(-15));
+              var dualStartRight = new Point(15, startCh.dualLineEq(15));
+              var dualEndLeft = new Point(-15, endCh.dualLineEq(-15));
+              var dualEndRight = new Point(15, endCh.dualLineEq(15));
+
+              var startPoint = dualStartLeft;
+              var endPoint = dualEndLeft;
+              var rightTurns = [];
+              var leftTurns = [];
+              var limits = [dualStartLeft,
+                            dualStartRight,
+                            dualEndLeft,
+                            dualEndRight];
+
+              //console.log("Limits: ", limits);
+              for (j in limits) {
+                if(isRightTurn(intersect, origin, limits[j])) {
+                  rightTurns.push(limits[j]);
+                } else {
+                  leftTurns.push(limits[j]);
+                }
+              }
+
+              // Get leftmost rightturn w.r.t intersection.
+              if(isRightTurn(intersect, rightTurns[0], rightTurns[1])) {
+                startPoint = rightTurns[0];
+              } else {
+                startPoint = rightTurns[1];
+              }
+              // Get rightMost leftTurn w.r.t. intersection
+              if(isLeftTurn(intersect, leftTurns[0], leftTurns[1])) {
+                endPoint = leftTurns[0];
+              } else {
+                endPoint = leftTurns[1];
+              }
+
+              console.log("Leftmost RightTurn: ", startPoint);
+              console.log("Rightmost LeftTurn: ", endPoint);
+
+
+              if(swapped) {
+                originVertices.push(endPoint);
+              } else {
+                originVertices.push(startPoint);
+              }
+
+              console.log("Right origin bound: ", startPoint);
+              console.log("Left origin bound: ", endPoint);
+
+              // Walk CCW - Does the whole ch need to be added?
+              for(var i = 0; i < ch.length-1; i++) {
+                console.log("Considering CH edge: ", ch[i], ch[i+1]);
+                originVertices.push(dualLineIntersect(ch[i], ch[i+1]));
+              }
+
+
+              if(swapped) {
+                originVertices.push(startPoint);
+              } else {
+                originVertices.push(endPoint);
+              }
+
+              console.log(originVertices);
+
+            } else {
+
+              // Originvertices are bounded
+              for(var i = 1; i <= chLen; i++) {
+                p = dualLineIntersect(ch[i-1], ch[i%chLen])
+                originVertices.push(p);
+              }
+            }
+          } else {
+            // Only 1 point: draw plane.
+            originVertices = [];
+            var canvasIntersections = ch[0].getDualCanvasIntersections();
+              if(isRightTurn(canvasIntersections.top,
+                             canvasIntersections.bottom,
+                             origin)) {
+                  originVertices.push(leftTop);
+                  originVertices.push(canvasIntersections.top);
+                  originVertices.push(canvasIntersections.bottom);
+                  originVertices.push(leftBottom);
+              } else {
+                  originVertices.push(rightTop);
+                  originVertices.push(rightBottom);
+                  originVertices.push(canvasIntersections.bottom);
+                  originVertices.push(canvasIntersections.top);
+
+              }
+          }
+      }
+    </script>
+  </head>
+  <body>
+    <h1> Assignment 7 </h1>
+    <div class="center-400">
+      <p> Quinten Rosseel (0536798) <br> 2 MsC Computer Science: Artificial Intelligence <br>
+        Vrije Universiteit Brussel</p>
+      <hr>
+      <p> <strong>Origin Face Detection using Polar Duality</strong><br>
+            Press spacebar to translate the origin and the lines.
+            Red dot = origin coordinate. <i>i.e.</i> (x<sub>0</sub>, y<sub>0</sub>)
+            <br>
+        <br>
+      </p>
+
+          <div class="coords">
+            <strong> X: &nbsp; </strong>
+            <p id="x-coord"></p>
+             &nbsp;
+             &nbsp;
+            <strong> Y: &nbsp; </strong>
+            <p id="y-coord"></p>
+          </div>
+          <br>
+    </div>
+
+  </body>
+
+</html>

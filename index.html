@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title> Autoflow</title>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <link rel="shortcut icon" href="img/favicon.ico">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="css/icon-font.css">
+    <link rel="stylesheet" href="fonts/themify/themify.css">
+    <!-- end -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body data-spy="scroll" data-target="#myNavbar" data-offset="70">
+<!-- <div class="page-wrapper">-->
+<!-- header-10 -->
+
+<header class="header-10">
+    <nav id="myNavbar" role="navigation">
+
+        <div class="container">
+            <div class="navbar col-sm-12" role="navigation">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle"></button>
+                    <a href="#home" class="brand"> <img src="img/logo_white.svg" width="130px" height"auto"> </a>
+                </div>
+                <div class="collapse navbar-collapse pull-right">
+                    <ul class="nav pull-left navbar-nav">
+                        <li><a href="#home"></a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#solution">Solutions</a></li>
+                        <li><a href="#tech">Tech</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </nav>
+</header>
+
+
+<div class="wrapper" id="home">
+    <section class="header-10-sub v-center bg-dark-gray">
+        <div class="background background2 video-container">
+            &nbsp;<video autoplay muted loop id="traffic_video">
+            <source src="https://content.screencast.com/users/fabo2301/folders/Default/media/901d829f-c5ba-4a2b-805f-710247632c4a/bg.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="container">
+            <div class="hero-unit">
+                <h1>Never Wait at a Red Light Again</h1>
+                <p>
+                    Smarter Traffic with Artificial Intelligence
+                </p>
+            </div>
+        </div>
+
+        <a class="control-btn fui-arrow-down" href="#about"> </a>
+
+    </section>
+
+
+    <!-- content-7  -->
+    <section class="content-7 v-center" id="about">
+        <div>
+            <div class="container">
+                <h3>About Autoflow</h3>
+
+                <div class="row v-center">
+
+                    <div class="col-sm-4">
+                        <p>
+                            Our goal is to eliminate traffic jams by creating traffic light intersections that learn from their environment.
+                            By leveraging machine learning, computer vision, and the Internet of Things, we can improve the congestion efficiency by creating smarter intersections.
+                        </p>
+                    </div>
+                    <div class="col-sm-4">
+                        <p>
+                            Sensors and cameras placed strategically around the intersection feed environment information to an autonomous agent in charge of controlling the traffic lights, with the goal of minimizing the amount of time vehicles and pedestrians spend stopped at a red light.
+                        </p>
+                    </div>
+                    <div class="col-sm-4">
+                        <p>By applying this method to many traffic light intersections around the city and connecting nearby autonomous agents, we hope to greatly improve the congestion efficiency of an entire city by employing traffic lights that learn from their surroundings.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- content-23  -->
+    <section class="content-23 v-center bg-midnight-blue custom-bg1">
+        <div>
+            <div class="container">
+
+            </div>
+        </div>
+    </section>
+
+    <!-- content-7  -->
+    <section class="content-7 v-center" id="solution">
+        <div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h3>Our Solutions</h3>
+
+                        <div class="row v-center problem-description">
+                            <div class="col-sm-12">
+
+                                <h6><b>Adaptive Light Switching</b></h6>
+                                <br>
+
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <p align=left>
+                                        When running on a simple timer, a traffic light will unnecessarily stop vehicles, potentially delaying many vehicles when there is not much traffic coming the other direction.
+                                    </p>
+                                </div>
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <p align=left>
+                                        Autoflow not only adapts in real-time to current traffic, but learns the patterns and behavior of its specific intersection to be plan the optimal light-switching strategy.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row v-center problem-description">
+                            <div class="col-sm-12">
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <b>Before</b>
+                                    <br><br>
+                                    <video autoplay muted loop class="demo-video">
+                                        <source src="https://content.screencast.com/users/fabo2301/folders/Default/media/48df47d4-8c9b-4d2b-b341-124cad55d38f/1A.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <b>After</b>
+                                    <br><br>
+                                    <video autoplay muted loop class="demo-video">
+                                        <source src="https://content.screencast.com/users/fabo2301/folders/Default/media/112883e9-8035-4c76-b040-7ef58e36431e/1B.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row v-center problem-description">
+                            <div class="col-sm-12">
+
+                                <h6><b>Priority Management</b></h6>
+                                <br>
+
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <p align=left>
+                                        When emergency vehicles such as ambulances and fire engines travel through intersections, they have to slow to ensure that they don't inadvertantly create another accident.
+                                    </p>
+                                </div>
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <p align=left>
+                                        Using image recognition and machine learning, Autoflow understands that a high priority vehicle is coming through, and can switch the lights accordingly.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row v-center problem-description">
+                            <div class="col-sm-12">
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <b>Before</b>
+                                    <br><br>
+                                    <video autoplay muted loop class="demo-video">
+                                        <source src="https://content.screencast.com/users/fabo2301/folders/Default/media/f46f7646-d5f1-4b8c-bcba-7cd4f6aed7da/2A.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <b>After</b>
+                                    <br><br>
+                                    <video autoplay muted loop class="demo-video">
+                                        <source src="https://content.screencast.com/users/fabo2301/folders/Default/media/b25bd0de-ffe9-462f-9773-fadf772e2bac/2B.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row v-center problem-description">
+                            <div class="col-sm-12">
+
+                                <h6><b>Flow Coordination</b></h6>
+                                <br>
+
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <p align=left>
+                                        When traffic lights are out of sync, it causes cars to repeatedly accelerate and stop.  This is the seed that grows into a large traffic jam given enough cars.
+                                    </p>
+                                </div>
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <p align=left>
+                                        The smart traffic intersections of Autoflow communicate with eachother.  One intersection will synchronize with a nearby neighbor, signalling there is more traffic coming.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row v-center problem-description">
+                            <div class="col-sm-12">
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <b>Before</b>
+                                    <br><br>
+                                    <video autoplay muted loop class="demo-video">
+                                        <source src="https://content.screencast.com/users/fabo2301/folders/Default/media/15200ae3-396b-4946-9633-f16eb27e0791/3A.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                                <div class="col-sm-6 projectcard" align=center>
+                                    <b>After</b>
+                                    <br><br>
+                                    <video autoplay muted loop class="demo-video">
+                                        <source src="https://content.screencast.com/users/fabo2301/folders/Default/media/e5328061-9801-444a-a96f-973fd0a8d0be/3B.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- content-23  -->
+    <section class="content-23 v-center bg-midnight-blue custom-bg3">
+        <div>
+            <div class="container">
+
+            </div>
+        </div>
+    </section>
+
+    <!-- content-7  -->
+    <section class="content-7 v-center" id="tech">
+        <div>
+            <div class="container">
+                <h3>Our Tech</h3>
+
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <h6><b>Machine Learning</b></h6>
+                        <p>
+                            Using reinforcement learning and feature extraction algorithms, each traffic light learns the patterns and behaviors of its specific intersection, tailoring the lights to optimally fit the needs of its own traffic and adapting in real-time to changing flow.
+                        </p>
+                    </div>
+                    <div class="col-sm-4">
+                        <h6><b>Computer Vision</b></h6>
+                        <p>
+                            Simply by attaching a low-cost camera to the traffic light, the image recognition technology automatically determines not just the amount of cars at the light, but can determine if there are any high priority vehicles in the vicinity.
+                        </p>
+                    </div>
+                    <div class="col-sm-4">
+                        <h6><b>Internet of Things</b></h6>
+                        <p>
+                            Autoflow is able to integrate telemetry from a variety of IoT sensor sources, creating an ever more detailed visualization of the intersection environment.  Sharing data between IoT devices is the way toward a smarter city.
+                        </p>
+                    </div>
+                </div>
+                <div class="row v-center">
+                    <div class="col-sm-12" align=center>
+                        <br>
+                        <img src="img/arch.png" width="70%" height"auto">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- content-23  -->
+    <section class="content-23 v-center bg-midnight-blue custom-bg3">
+        <div>
+            <div class="container">
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- content-8  -->
+    <section class="content-8">
+        <div>
+            <div id="contact" class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h3><b>Contact Us</b></h3>
+
+                        I you would like to work with us or hear more about what we do, please  contact us <b><a href="mailto:hello@autoflow.ai"> here</a></b>.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- content-11  -->
+    <footer class="footer-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-6">
+                    <p class="pull-left">Our <b>ambassadors</b></p> <br> <br>
+                    <a target="_blank" class="brand" href="http://www.vub.be">
+                        <img src="img/vub.png" height="50" width="90"></a>
+                    <a target="_blank" class="brand" href="http://www.telenet.be">
+                        <img src="img/telenet.png" width="30" height="30"></a>
+                </div>
+                <div class="col-xs-6">
+                    <p class="pull-right text-right"><b>&copy; Autoflow 2018</b><br> ALL RIGHTS RESERVED<br>Only use images with approval</p>
+                </div>
+          </div>
+        </div>
+    </footer>
+</div>
+<!--</div>-->
+
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="js/jquery-1.10.2.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/modernizr.custom.js"></script>
+<script src="js/jquery.scrollTo-1.4.3.1-min.js"></script>
+<script src="js/jquery.parallax.min.js"></script>
+<script src="js/startup-kit.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="./styling.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.js"></script>
+    <script src="./matrixOps.js" type="text/javascript"></script>
+    <script src="./binSearch.js" type="text/javascript"></script>
+
+    <script language="javascript" type="text/javascript">
+      var canvasWidth = 800;
+      var canvasHeight = 480;
+
+      var points = [];
+      var ch = [];
+      var stack = [];
+      var upTan;
+      var lowTan;
+      var outside = false;
+      var triangles = [];
+
+      class Point {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.redAvailable = true;
+            this.greenAvailable = true;
+            this.blueAvailable = true;
+            this.blackAvailable = true;
+            this.hasColor = false;
+            this.color;
+        }
+        getColor() {
+          return this.color;
+        }
+        crossColor(col){
+          if(!this.hasColor) {
+            if(col === 'red') {
+              this.redAvailable = false;
+            } else if(col === 'green'){
+              this.greenAvailable = false;
+            } else if(col === 'blue') {
+              this.blueAvailable = false;
+            } else if(col === 'black') {
+              this.blackAvailable = false;
+            }
+          }
+        }
+        setColor() {
+          if(!this.hasColor) {
+            if(this.redAvailable) {
+              this.color = 'red';
+              this.redAvailable = false;
+              this.greenAvailable = false;
+              this.blueAvailable = false;
+              this.blackAvailable = false;
+              return 'red';
+            } else if(this.greenAvailable) {
+              this.color = 'green';
+              this.greenAvailable = false;
+              this.blueAvailable = false;
+              this.blackAvailable = false;
+              return 'green';
+            } else if(this.blueAvailable){
+              this.color = 'blue'
+              this.blueAvailable = false;
+              this.blackAvailable = false;
+              return 'blue';
+            } else if (this.blackAvailable) {
+              this.color = 'black';
+              this.blackAvailable = false;
+              return 'black';
+            } else {
+              console.log('NO FUCKING COLORS LEFT FOR:  ');
+              console.log(this);
+            }
+            this.hasColor = true;
+          }
+        }
+
+        resetColor() {
+          this.redAvailable = true;
+          this.greenAvailable = true;
+          this.blueAvailable = true;
+          this.blackAvailable = true;
+          this.hasColor = false;
+          this.color = undefined;
+        }
+      }
+
+      class Triangle {
+        constructor(a, b, c) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+        }
+      }
+      // Assumes that point has a coloring.
+      // Point is middle point of the ear.
+      function colorNeighborhood(tri){
+
+        // console.log(tri);
+        //
+        // console.log("BEFORE: ")
+        // console.log("Point A: ");
+        // if(tri.a.hasColor){
+        //   console.log("has color " + tri.a.getColor());
+        // } else {
+        //   console.log("Red Available = " + str(tri.a.redAvailable));
+        //   console.log("Green Available = " + str(tri.a.greenAvailable));
+        //   console.log("Blue Available = " + str(tri.a.blueAvailable));
+        //   console.log("Black Available = " + str(tri.a.blackAvailable));
+        // }
+        //
+        // if(tri.b.hasColor){
+        //   console.log("has color " + tri.b.getColor());
+        // } else {
+        //   console.log("Point B: ");
+        //   console.log("Red Available = " + str(tri.b.redAvailable));
+        //   console.log("Green Available = " + str(tri.b.greenAvailable));
+        //   console.log("Blue Available = " + str(tri.b.blueAvailable));
+        //   console.log("Black Available = " + str(tri.b.blackAvailable));
+        // }
+        //
+        // console.log("Point C: ");
+        // console.log("Red Available = " + str(tri.c.redAvailable));
+        // console.log("Green Available = " + str(tri.c.greenAvailable));
+        // console.log("Blue Available = " + str(tri.c.blueAvailable));
+        // console.log("Black Available = " + str(tri.c.blackAvailable));
+
+        // if(tri.a.hasColor) {
+        //   console.log("Already colored. ");
+        //   tri.b.crossColor(tri.a.getColor());
+        //   tri.c.crossColor(tri.a.getColor());
+        //   tri.b.setColor();
+        //   tri.c.crossColor(tri.b.getColor());
+        //   //tri.c.setColor();
+        // } else {
+        //   tri.b.setColor();
+        //   tri.a.crossColor(color);
+        //   tri.c.crossColor(color);
+        //   tri.a.setColor();
+        //   tri.c.crossColor(tri.a.getColor());
+        //   //tri.c.setColor();
+        // }
+
+        tri.b.setColor();
+
+        tri.a.crossColor(tri.b.getColor());
+        // console.log("Removing ability of point: ");
+        // console.log(tri.a);
+        // console.log("To have color " + tri.b.getColor());
+
+        tri.c.crossColor(tri.b.getColor());
+        // console.log("Removing ability of point: ");
+        // console.log(tri.c);
+        // console.log("To have color " + tri.b.getColor());
+      }
+      function colorTriangle(tri) {
+          tri.a.setColor();
+          tri.b.crossColor(tri.a.getColor());
+          tri.c.crossColor(tri.a.getColor());
+          tri.b.setColor();
+          tri.c.crossColor(tri.b.getColor());
+          tri.c.setColor();
+          // if(tri.a.hasColor) {
+          //   tri.b.crossColor(tri.a.getColor());
+          //   tri.c.crossColor(tri.a.getColor());
+          // } else {
+          //   tri.a.setColor();
+          //   var crossColor = tri.a.getColor();
+          //   tri.b.crossColor(crossColor);
+          //   tri.c.crossColor(crossColor);
+          //
+          //   tri.b.setColor();
+          //   tri.c.crossColor(tri.b.getColor();)
+          //
+          //   tri.c.setColor();
+          // }
+      }
+      function setup() {
+          createCanvas(canvasWidth, canvasHeight);
+          fill('black');
+      }
+      function draw() {
+          background(255);
+          for (i in triangles) {
+              stroke(120,80,55);
+              line(triangles[i].a.x,triangles[i].a.y,
+                   triangles[i].b.x,triangles[i].b.y);
+              line(triangles[i].b.x,triangles[i].b.y,
+                   triangles[i].c.x,triangles[i].c.y);
+              line(triangles[i].c.x,triangles[i].c.y,
+                   triangles[i].a.x,triangles[i].a.y);
+          }
+          var radius = 10;
+          for (i in points) {
+            if(points[i].color === 'red') {
+                fill(255, 0, 0);
+            } else if(points[i].color === 'green') {
+                fill(0,255,0);
+            } else if(points[i].color === 'blue') {
+                fill(0,0,255);
+            } else if(points[i].color === 'black') {
+              //console.log("No colors left for point: ");
+              //console.log(points[i]);
+              fill(0);
+            } else {
+              fill(40);
+            }
+
+            noStroke();
+            ellipse(points[i].x,points[i].y, radius,radius);
+          }
+      }
+      // MinPoint is the point with the smallest X value
+      // Residue is a copy of the points array without the minPoint
+      function minXPoint(points) {
+        var len = points.length-1;
+        if(len >= 0){
+          var minX = points[len].x;
+          var idx = len;
+          for (var i = len - 1; i >= 0; i--) {
+            if(minX > points[i].x) {
+              minX = points[i].x;
+              idx = i;
+            }
+          }
+          var newArr = points.slice();
+          newArr.splice(idx, 1);
+          return {minPoint: points[idx], residue: newArr};
+        }
+      }
+
+      function resetColors(points) {
+          for (i in points) {
+            points[i].resetColor();
+          }
+      }
+      function radiusSort(origin, points) {
+        var arr = points.slice();
+        arr.sort(function (a, b) {
+           if (orientDet(origin, a, b) > 0) {
+             return -1;
+           }
+           if (orientDet(origin, a, b) < 0)    {
+             return 1;
+           }
+           // a and b lie on the same line.
+           return 0;
+        });
+        return arr;
+      }
+      function mouseMoved() {
+        document.getElementById('x-coord').innerHTML = mouseX;
+        document.getElementById('y-coord').innerHTML = mouseY;
+      }
+      function isRightTurn(p, q, r) {
+        var det = orientDet(p,q,r);
+        return (det <= 0);
+      }
+      function isLeftTurn(p, q, r) {
+        return !isRightTurn(p, q, r);
+      }
+      function grahamScan(points) {
+        var stack = [];
+        var xMin = minXPoint(points); // O(n), as we are not sorting
+        var rSort = [];
+
+        if(points.length > 3) {
+          // rSort does not contain the origin around which we sort.
+          rSort = radiusSort(xMin.minPoint, xMin.residue); // O(n*log(n))
+
+          // Stack <- p0 p1 p2 p4
+          stack.push(xMin.minPoint);
+          stack.push(rSort[0]);
+          stack.push(rSort[1]);
+          stack.push(rSort[2]);
+
+          for(var i = 3; i < points.length; i++) {
+              while(stack.length > 2 &&
+                    isRightTurn(stack[stack.length - 3], stack[stack.length - 2], stack[stack.length - 1])) {
+                  // Pop element that causes right turn
+                  stack.splice((stack.length - 2), 1);
+              }
+              stack.push(rSort[i]);
+          }
+          stack.pop();
+          return stack;
+        } else {
+          // CH of triangle is a triangle.
+          xMin.residue.unshift(xMin.minPoint);
+          return xMin.residue;
+        }
+      }
+
+      function printPoints() {
+          for (i in points) {
+            print(points[i]);
+          }
+      }
+
+      // We assume CCW ordering for triangle.  i.e. a -> b -> c
+      function insideTriangle (triangle, point) {
+        return (isLeftTurn(triangle.a,triangle.b, point) &&
+                isLeftTurn(triangle.b,triangle.c, point) &&
+                isLeftTurn(triangle.c,triangle.a, point));
+      }
+
+      function removeFirstEar(polygonArr) {
+        var firstEar;
+        var earMiddle;
+        for(var i = 0; i < polygonArr.length; i++) {
+          earMiddle = (i+1)%polygonArr.length
+          var pointA = polygonArr[i];
+          var pointB = polygonArr[earMiddle]
+          var pointC = polygonArr[(i+2)%polygonArr.length]
+          if(isLeftTurn(pointA, pointB, pointC)) {
+              var inTriangle = false;
+              var triangle = new Triangle(pointA, pointB, pointC);
+
+              checkPoints:
+              for(var j = 0; j < polygonArr.length; j++) {
+                  if(insideTriangle(triangle, polygonArr[j])) {
+                    inTriangle = true;
+                    firstEar = triangle;
+                    break checkPoints; // Point inside: cannot be an ear.
+                  }
+               }
+
+               // No points inside triangle found: EAR
+               if(!inTriangle) {
+                  firstEar = triangle;
+                  polygonArr.splice(earMiddle, 1);
+                  break;
+               }
+           }
+        }
+        return firstEar;
+      }
+
+      function mousePressed() {
+            triangles = [];
+            points.push(new Point(mouseX,mouseY));
+
+            // Reset coloring.
+            resetColors(points);
+            var triangulation = points.slice();
+            var n = triangulation.length;
+
+            for(var i = 0; i < (n-2); i++) {
+              var ear = removeFirstEar(triangulation);
+              colorNeighborhood(ear);
+              triangles.push(ear); // Changes the triangulation array
+            }
+            if(triangles.length > 0){
+              colorTriangle(triangles[triangles.length - 1]);
+            }
+      }
+    </script>
+  </head>
+  <body>
+    <h1> Assignment 5 </h1>
+    <div class="center-400">
+      <p> Quinten Rosseel (0536798) <br> 2 MsC Computer Science: Artificial Intelligence <br>
+        Vrije Universiteit Brussel</p>
+      <hr>
+      <p> <strong>Planar Graph Coloring</strong><br>
+        Please draw the points of the desired polygon in CCW order,
+        in a way that sub-polygons of the final polygon do not form CW ordered edges. <br>
+        <br>
+      </p>
+
+          <div class="coords">
+            <strong> X: &nbsp; </strong>
+            <p id="x-coord"></p>
+             &nbsp;
+             &nbsp;
+            <strong> Y: &nbsp; </strong>
+            <p id="y-coord"></p>
+          </div>
+          <br>
+    </div>
+
+  </body>
+
+</html>
